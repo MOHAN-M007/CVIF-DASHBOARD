@@ -176,7 +176,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {(user.role === "admin" || user.role === "owner") && (
+        {user.role === "owner" && (
           <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
             <div className="font-semibold">Admin</div>
             <div className="mt-2 text-sm text-zinc-300">
