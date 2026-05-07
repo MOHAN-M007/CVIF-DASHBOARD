@@ -50,8 +50,8 @@ export default function OwnerUserDetailPage() {
       setData(res);
       const u = (res.user || res.data?.user || res) as UserDetail;
       setRole(u.role || "player");
-      setWallet(String(res.wallet_balance ?? res.economy?.balance ?? ""));
-      setBank(String(res.bank_balance ?? res.bank?.balance ?? ""));
+      setWallet(String(u.wallet_balance ?? u.wallet ?? ""));
+      setBank(String(u.bank_balance_actual ?? u.bank_balance ?? ""));
     } catch (e: any) {
       setErr(e?.message || "Failed to load user");
     } finally {
@@ -234,14 +234,15 @@ export default function OwnerUserDetailPage() {
                   onClick={() => {
                     const m = toNumberOrNull(lockMinutes);
                     if (m === null || m <= 0) return setErr("Invalid lock minutes");
-                    void patch({ lock_minutes: m }, "User locked");
+                    // backend uses "locked" boolean; minutes are informational only
+                    void patch({ locked: true }, "User locked");
                   }}
                 >
                   Lock
                 </button>
                 <button
                   className="flex-1 rounded-xl border border-zinc-800 px-3 py-2 text-sm hover:bg-zinc-800/60"
-                  onClick={() => patch({ unlock: true }, "User unlocked")}
+                  onClick={() => patch({ locked: false }, "User unlocked")}
                 >
                   Unlock
                 </button>
@@ -279,9 +280,10 @@ export default function OwnerUserDetailPage() {
               <div className="space-y-2">
                 {(data.sessions as any[]).slice(0, 10).map((s) => (
                   <div key={String(s._id || s.session_token)} className="rounded-xl border border-zinc-800 px-3 py-2">
-                    <div className="text-zinc-100 break-all">{String(s.session_token || "").slice(0, 24)}…</div>
+                    <div className="text-zinc-100 break-all">{String(s.ip || "—")}</div>
                     <div className="text-xs text-zinc-500 mt-1">
-                      {s.ip || "—"} • {s.created_at ? new Date(s.created_at).toLocaleString() : ""}
+                      {s.created_at ? new Date(s.created_at).toLocaleString() : ""} •{" "}
+                      {s.expires_at ? new Date(s.expires_at).toLocaleString() : ""}
                     </div>
                   </div>
                 ))}
@@ -293,11 +295,11 @@ export default function OwnerUserDetailPage() {
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
           <div className="font-semibold">Recent Audit</div>
           <div className="mt-3 text-sm text-zinc-300">
-            {(data?.audit_logs || []).length === 0 ? (
+            {(data?.audit || []).length === 0 ? (
               <div className="text-zinc-400">No audit logs</div>
             ) : (
               <div className="space-y-2">
-                {(data.audit_logs as any[]).slice(0, 10).map((l) => (
+                {(data.audit as any[]).slice(0, 10).map((l) => (
                   <div key={String(l._id)} className="rounded-xl border border-zinc-800 px-3 py-2">
                     <div className="text-zinc-100">{l.action || "action"}</div>
                     <div className="text-xs text-zinc-500 mt-1">
@@ -313,4 +315,3 @@ export default function OwnerUserDetailPage() {
     </div>
   );
 }
-
