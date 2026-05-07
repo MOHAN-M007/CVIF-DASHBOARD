@@ -30,7 +30,7 @@ export function useAuth() {
 
   const login = useCallback(async (username: string, password: string) => {
     setError(null);
-    await apiFetch<{ success: true; token: string; user_id: string }>("/api/auth/login", {
+    await apiFetch<{ success: true; user: MeUser }>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ username, password, ip: "web" }),
     });

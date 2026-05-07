@@ -21,7 +21,13 @@ export default function LoginPage() {
       <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
         <h1 className="text-xl font-semibold">CVIF Dashboard Login</h1>
         <p className="mt-1 text-sm text-zinc-400">
-          Use the same username/password you use in Minecraft (AuthCore).
+          Use your CVIF website password (set it once, then login here).
+        </p>
+        <p className="mt-2 text-xs text-zinc-400">
+          First time?{" "}
+          <a className="underline hover:text-zinc-200" href="/set-password">
+            Create website password
+          </a>
         </p>
 
         <form
