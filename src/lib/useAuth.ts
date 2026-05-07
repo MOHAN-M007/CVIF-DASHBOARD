@@ -9,7 +9,12 @@ export type MeUser = {
   role: "player" | "officer" | "admin" | "owner";
 };
 
-export function useAuth() {
+type UseAuthOptions = {
+  autoRefresh?: boolean;
+};
+
+export function useAuth(options: UseAuthOptions = {}) {
+  const { autoRefresh = true } = options;
   const [user, setUser] = useState<MeUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,8 +52,12 @@ export function useAuth() {
   }, []);
 
   useEffect(() => {
+    if (!autoRefresh) {
+      setLoading(false);
+      return;
+    }
     void refresh();
-  }, [refresh]);
+  }, [refresh, autoRefresh]);
 
   return useMemo(
     () => ({ user, loading, error, refresh, login, logout }),

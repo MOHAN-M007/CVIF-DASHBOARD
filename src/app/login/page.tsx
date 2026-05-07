@@ -1,12 +1,13 @@
 ﻿"use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, loading, login, error } = useAuth();
+  const { user, loading, refresh, error } = useAuth({ autoRefresh: false });
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -14,6 +15,44 @@ export default function LoginPage() {
 
   if (!loading && user) {
     router.replace("/dashboard");
+  }
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    console.log("[LOGIN] submit clicked");
+
+    setLocalError(null);
+    setSubmitting(true);
+    try {
+      console.log("[LOGIN] sending request");
+      const res = await fetch("https://cvif-backend.onrender.com/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          username: username.trim(),
+          password,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      console.log("[LOGIN] response", data);
+
+      if (!res.ok) {
+        setLocalError(data?.message || "Login failed");
+        return;
+      }
+
+      // After cookie is set, call /me exactly once to confirm and populate state.
+      await refresh();
+      router.replace("/dashboard");
+    } catch (err: any) {
+      setLocalError(err?.message || "Login failed");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -30,22 +69,7 @@ export default function LoginPage() {
           </a>
         </p>
 
-        <form
-          className="mt-6 space-y-4"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setLocalError(null);
-            setSubmitting(true);
-            try {
-              await login(username.trim(), password);
-              router.replace("/dashboard");
-            } catch (err: any) {
-              setLocalError(err?.message || "Login failed");
-            } finally {
-              setSubmitting(false);
-            }
-          }}
-        >
+        <form className="mt-6 space-y-4" onSubmit={handleLogin}>
           <div>
             <label className="block text-sm text-zinc-300">Username</label>
             <input
